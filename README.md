@@ -1111,50 +1111,68 @@ Tab:AddToggle({
             end
             
             pcall(function()
-                local ChangeCharacterBody = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ChangeCharacterBody")
-                ChangeCharacterBody:InvokeServer({
-                    [1] = 101117105366712,
-                    [2] = 98053827406609,
-                    [3] = 90625708636271,
-                    [4] = 80589238179667,
-                    [5] = 93468321136920,
-                    [6] = 74301725528092
-                })
+                local args = {
+                    [1] = {
+                        [1] = 101117105366712,
+                        [2] = 98053827406609,
+                        [3] = 90625708636271,
+                        [4] = 80589238179667,
+                        [5] = 93468321136920,
+                        [6] = 74301725528092
+                    }
+                }
+                game:GetService("ReplicatedStorage").Remotes.ChangeCharacterBody:InvokeServer(unpack(args))
                 
-                local player = game.Players.LocalPlayer
-                local character = player.Character
-                if character then
-                    local humanoid = character:FindFirstChild("Humanoid")
-                    if humanoid then
-                        for _, v in pairs(character:GetChildren()) do
-                            if v:IsA("Shirt") or v:IsA("Pants") then
-                                v:Destroy()
-                            end
-                        end
-                        
-                        local Shirt = Instance.new("Shirt")
-                        Shirt.ShirtTemplate = "rbxassetid://6692870397"
-                        Shirt.Parent = character
-                        
-                        local Pants = Instance.new("Pants")
-                        Pants.PantsTemplate = "rbxassetid://5197702014"
-                        Pants.Parent = character
-                        
-                        local head = character:FindFirstChild("Head")
-                        if head then
-                            local face = head:FindFirstChild("face")
-                            if face then
-                                face.Texture = "rbxassetid://86487700"
-                            else
-                                local newFace = Instance.new("Decal")
-                                newFace.Name = "face"
-                                newFace.Face = "Front"
-                                newFace.Texture = "rbxassetid://86487700"
-                                newFace.Parent = head
-                            end
-                        end
+                local Players = game:GetService("Players")
+                local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                local LocalPlayer = Players.LocalPlayer
+                local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                
+                local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+                local WearRemote = Remotes:WaitForChild("Wear")
+                local WearShirtRemote = Remotes:WaitForChild("WearShirt")
+                local WearPantsRemote = Remotes:WaitForChild("WearPants")
+                
+                local shirtsToWear = {6692870397}
+                local pantsToWear = {5197702014}
+                for _, id in ipairs(shirtsToWear) do
+                    WearShirtRemote:InvokeServer(id)
+                end
+                for _, id in ipairs(pantsToWear) do
+                    WearPantsRemote:InvokeServer(id)
+                end
+                
+                local head = Character:FindFirstChild("Head")
+                if head then
+                    local face = head:FindFirstChild("face")
+                    if face then
+                        face.Texture = "rbxassetid://86487700"
+                    else
+                        local newFace = Instance.new("Decal")
+                        newFace.Name = "face"
+                        newFace.Face = "Front"
+                        newFace.Texture = "rbxassetid://86487700"
+                        newFace.Parent = head
                     end
                 end
+                
+                local animate = Character:WaitForChild("Animate")
+                local humanoid = Character:WaitForChild("Humanoid")
+                
+                for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
+                    pcall(function()
+                        track:Stop()
+                        track:Destroy()
+                    end)
+                end
+                
+                animate.walk.WalkAnim.AnimationId   = "http://www.roblox.com/asset/?id=973767371"
+                animate.run.RunAnim.AnimationId     = "http://www.roblox.com/asset/?id=734325948"
+                animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=126354114956642"
+                animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=126354114956642"
+                animate.jump.JumpAnim.AnimationId   = "http://www.roblox.com/asset/?id=1113742359"
+                animate.fall.FallAnim.AnimationId   = "http://www.roblox.com/asset/?id=1113742359"
+                animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=1113742359"
             end)
         else
             pcall(function()
