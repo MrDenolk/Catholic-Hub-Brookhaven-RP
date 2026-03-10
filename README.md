@@ -1846,6 +1846,180 @@ game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1Ca1r"):Fi
 })
 
 
+local Section = Tab:AddSection({"Car Trolls"})
+
+local Dropdown = Tab:AddDropdown({
+    Name = "Select Player Car",
+    Description = " ",
+    Default = nil,
+    Options = VehicleHub:UpdateVehicleList(),
+    Callback = function(selectedCar)
+        _G.SelectedVehicle = selectedCar
+    end
+})
+
+Tab:AddToggle({
+    Name = "View Car",
+    Description = " ",
+    Default = false,
+    Callback = function(state)
+        if state then
+            if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
+                VehicleHub:ShowNotification("No car selected!")
+                return
+            end
+
+            local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
+            if not vehiclesFolder then
+                VehicleHub:ShowNotification("Vehicles folder not found!")
+                return
+            end
+
+            local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
+            if not vehicle then
+                VehicleHub:ShowNotification("Selected car not found!")
+                return
+            end
+
+            local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
+            if not vehicleSeat then
+                VehicleHub:ShowNotification("Car seat not found!")
+                return
+            end
+
+            VehicleHub.OriginalCameraSubject = VehicleHub.Camera.CameraSubject
+            VehicleHub.OriginalCameraType = VehicleHub.Camera.CameraType
+
+            VehicleHub.Camera.CameraSubject = vehicleSeat
+            VehicleHub.Camera.CameraType = Enum.CameraType.Follow
+            VehicleHub:ShowNotification("Camera set to " .. _G.SelectedVehicle .. "!")
+        else
+            if VehicleHub.OriginalCameraSubject then
+                VehicleHub.Camera.CameraSubject = VehicleHub.OriginalCameraSubject
+                VehicleHub.Camera.CameraType = VehicleHub.OriginalCameraType or Enum.CameraType.Custom
+                VehicleHub:ShowNotification("Camera restored!")
+                VehicleHub.OriginalCameraSubject = nil
+                VehicleHub.OriginalCameraType = nil
+            end
+        end
+    end
+})
+
+VehicleHub.Workspace:WaitForChild("Vehicles").ChildAdded:Connect(function()
+    Dropdown:Set(VehicleHub:UpdateVehicleList())
+end)
+VehicleHub.Workspace:WaitForChild("Vehicles").ChildRemoved:Connect(function()
+    Dropdown:Set(VehicleHub:UpdateVehicleList())
+end)
+
+
+Tab:AddButton({
+    Name = "Destroy Car",
+    Description = " ",
+    Callback = function()
+        if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
+            VehicleHub:ShowNotification("No car selected!")
+            return
+        end
+
+        local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
+        if not vehiclesFolder then
+            VehicleHub:ShowNotification("Vehicles folder not found!")
+            return
+        end
+
+        local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
+        if not vehicle then
+            VehicleHub:ShowNotification("Selected car not found!")
+            return
+        end
+
+        local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
+        if not vehicleSeat then
+            VehicleHub:ShowNotification("Car seat not found!")
+            return
+        end
+
+        if vehicleSeat.Occupant then
+            VehicleHub:ShowNotification("Cannot kill car, someone is in the driver seat!")
+            return
+        end
+
+        local originalPos
+        if VehicleHub.LocalPlayer.Character and VehicleHub.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            originalPos = VehicleHub.LocalPlayer.Character.HumanoidRootPart.Position
+        else
+            VehicleHub:ShowNotification("Player character not found!")
+            return
+        end
+
+        VehicleHub:ToggleFallDamage(true)
+        local success = VehicleHub:TeleportToSeat(vehicleSeat, vehicle)
+        if success then
+            VehicleHub:TeleportToVoid(vehicle)
+            VehicleHub:ShowNotification("Car " .. _G.SelectedVehicle .. " teleported to void!")
+            VehicleHub:ExitCarAndReturn(originalPos)
+        else
+            VehicleHub:ShowNotification("Failed to sit in car!")
+        end
+        VehicleHub:ToggleFallDamage(false)
+    end
+})
+
+Tab:AddButton({
+    Name = "Bring Car",
+    Description = " ",
+    Callback = function()
+        if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
+            VehicleHub:ShowNotification("No car selected!")
+            return
+        end
+
+        local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
+        if not vehiclesFolder then
+            VehicleHub:ShowNotification("Vehicles folder not found!")
+            return
+        end
+
+        local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
+        if not vehicle then
+            VehicleHub:ShowNotification("Selected car not found!")
+            return
+        end
+
+        local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
+        if not vehicleSeat then
+            VehicleHub:ShowNotification("Car seat not found!")
+            return
+        end
+
+        if vehicleSeat.Occupant then
+            VehicleHub:ShowNotification("Cannot teleport car, someone is in the driver seat!")
+            return
+        end
+
+        local originalPos
+        if VehicleHub.LocalPlayer.Character and VehicleHub.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            originalPos = VehicleHub.LocalPlayer.Character.HumanoidRootPart.Position
+        else
+            VehicleHub:ShowNotification("Player character not found!")
+            return
+        end
+
+        VehicleHub:ToggleFallDamage(true)
+        local success = VehicleHub:TeleportToSeat(vehicleSeat, vehicle)
+        if success then
+            VehicleHub:TeleportToPlayer(vehicle, originalPos)
+            VehicleHub:ShowNotification("Car " .. _G.SelectedVehicle .. " teleported to you!")
+            VehicleHub:ExitCarAndReturn(originalPos)
+        else
+            VehicleHub:ShowNotification("Failed to sit in car!")
+        end
+        VehicleHub:ToggleFallDamage(false)
+    end
+})
+
+
 local Section = Tab:AddSection({"All Car Functions"})
 
 shared.g = shared.g or {}
@@ -1940,15 +2114,26 @@ function VehicleHub:TeleportToPlayer(car, playerPos)
     task.wait(0.5)
 end
 
-function VehicleHub:ExitCarAndReturn(originalPos)
+function VehicleHub:SafeExitCar(originalPos)
     if not self.LocalPlayer.Character or not self.LocalPlayer.Character:FindFirstChild("Humanoid") then return end
     local humanoid = self.LocalPlayer.Character.Humanoid
+    local rootPart = self.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    
+    -- Sai do carro
     if humanoid.SeatPart then
         humanoid.Sit = false
     end
     task.wait(0.1)
-    if originalPos then
-        self.LocalPlayer.Character:PivotTo(CFrame.new(originalPos))
+    
+    -- Pula antes de teleportar
+    if humanoid then
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+    task.wait(0.1)
+    
+    -- Teleporta para posição segura
+    if originalPos and rootPart then
+        rootPart.CFrame = CFrame.new(originalPos + Vector3.new(0, 5, 0))
     end
 end
 
@@ -1968,7 +2153,7 @@ function VehicleHub:UpdateVehicleList()
 end
 
 Tab:AddToggle({
-    Name = "Kill All Server Cars",
+    Name = "Kill All Cars",
     Description = " ",
     Default = false,
     Callback = function(state)
@@ -2008,7 +2193,7 @@ Tab:AddToggle({
                         local success = VehicleHub:TeleportToSeat(vehicleSeat, car)
                         if success then
                             VehicleHub:TeleportToVoid(car)
-                            VehicleHub:ExitCarAndReturn(originalPosition)
+                            VehicleHub:SafeExitCar(originalPosition) -- Agora usa SafeExitCar
                             task.wait(1)
                         end
                     end
@@ -2023,180 +2208,6 @@ Tab:AddToggle({
             teleportActive = false
             VehicleHub:ToggleFallDamage(false)
         end
-    end
-})
-
-local Section = Tab:AddSection({"Car Functions"})
-
-local Dropdown = Tab:AddDropdown({
-    Name = "Select Player Car",
-    Description = " ",
-    Default = nil,
-    Options = VehicleHub:UpdateVehicleList(),
-    Callback = function(selectedCar)
-        _G.SelectedVehicle = selectedCar
-    end
-})
-
-Tab:AddToggle({
-    Name = "View Selected Car Camera",
-    Description = " ",
-    Default = false,
-    Callback = function(state)
-        if state then
-            if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
-                VehicleHub:ShowNotification("No car selected!")
-                return
-            end
-
-            local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
-            if not vehiclesFolder then
-                VehicleHub:ShowNotification("Vehicles folder not found!")
-                return
-            end
-
-            local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
-            if not vehicle then
-                VehicleHub:ShowNotification("Selected car not found!")
-                return
-            end
-
-            local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
-            if not vehicleSeat then
-                VehicleHub:ShowNotification("Car seat not found!")
-                return
-            end
-
-            VehicleHub.OriginalCameraSubject = VehicleHub.Camera.CameraSubject
-            VehicleHub.OriginalCameraType = VehicleHub.Camera.CameraType
-
-            VehicleHub.Camera.CameraSubject = vehicleSeat
-            VehicleHub.Camera.CameraType = Enum.CameraType.Follow
-            VehicleHub:ShowNotification("Camera set to " .. _G.SelectedVehicle .. "!")
-        else
-            if VehicleHub.OriginalCameraSubject then
-                VehicleHub.Camera.CameraSubject = VehicleHub.OriginalCameraSubject
-                VehicleHub.Camera.CameraType = VehicleHub.OriginalCameraType or Enum.CameraType.Custom
-                VehicleHub:ShowNotification("Camera restored!")
-                VehicleHub.OriginalCameraSubject = nil
-                VehicleHub.OriginalCameraType = nil
-            end
-        end
-    end
-})
-
-VehicleHub.Workspace:WaitForChild("Vehicles").ChildAdded:Connect(function()
-    Dropdown:Set(VehicleHub:UpdateVehicleList())
-end)
-VehicleHub.Workspace:WaitForChild("Vehicles").ChildRemoved:Connect(function()
-    Dropdown:Set(VehicleHub:UpdateVehicleList())
-end)
-
-local Section = Tab:AddSection({"Kill and Bring Functions"})
-
-Tab:AddButton({
-    Name = "Destroy Selected Car",
-    Description = " ",
-    Callback = function()
-        if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
-            VehicleHub:ShowNotification("No car selected!")
-            return
-        end
-
-        local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
-        if not vehiclesFolder then
-            VehicleHub:ShowNotification("Vehicles folder not found!")
-            return
-        end
-
-        local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
-        if not vehicle then
-            VehicleHub:ShowNotification("Selected car not found!")
-            return
-        end
-
-        local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
-        if not vehicleSeat then
-            VehicleHub:ShowNotification("Car seat not found!")
-            return
-        end
-
-        if vehicleSeat.Occupant then
-            VehicleHub:ShowNotification("Cannot kill car, someone is in the driver seat!")
-            return
-        end
-
-        local originalPos
-        if VehicleHub.LocalPlayer.Character and VehicleHub.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            originalPos = VehicleHub.LocalPlayer.Character.HumanoidRootPart.Position
-        else
-            VehicleHub:ShowNotification("Player character not found!")
-            return
-        end
-
-        VehicleHub:ToggleFallDamage(true)
-        local success = VehicleHub:TeleportToSeat(vehicleSeat, vehicle)
-        if success then
-            VehicleHub:TeleportToVoid(vehicle)
-            VehicleHub:ShowNotification("Car " .. _G.SelectedVehicle .. " teleported to void!")
-            VehicleHub:ExitCarAndReturn(originalPos)
-        else
-            VehicleHub:ShowNotification("Failed to sit in car!")
-        end
-        VehicleHub:ToggleFallDamage(false)
-    end
-})
-
-Tab:AddButton({
-    Name = "Bring Selected Car",
-    Description = " ",
-    Callback = function()
-        if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
-            VehicleHub:ShowNotification("No car selected!")
-            return
-        end
-
-        local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
-        if not vehiclesFolder then
-            VehicleHub:ShowNotification("Vehicles folder not found!")
-            return
-        end
-
-        local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
-        if not vehicle then
-            VehicleHub:ShowNotification("Selected car not found!")
-            return
-        end
-
-        local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
-        if not vehicleSeat then
-            VehicleHub:ShowNotification("Car seat not found!")
-            return
-        end
-
-        if vehicleSeat.Occupant then
-            VehicleHub:ShowNotification("Cannot teleport car, someone is in the driver seat!")
-            return
-        end
-
-        local originalPos
-        if VehicleHub.LocalPlayer.Character and VehicleHub.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            originalPos = VehicleHub.LocalPlayer.Character.HumanoidRootPart.Position
-        else
-            VehicleHub:ShowNotification("Player character not found!")
-            return
-        end
-
-        VehicleHub:ToggleFallDamage(true)
-        local success = VehicleHub:TeleportToSeat(vehicleSeat, vehicle)
-        if success then
-            VehicleHub:TeleportToPlayer(vehicle, originalPos)
-            VehicleHub:ShowNotification("Car " .. _G.SelectedVehicle .. " teleported to you!")
-            VehicleHub:ExitCarAndReturn(originalPos)
-        else
-            VehicleHub:ShowNotification("Failed to sit in car!")
-        end
-        VehicleHub:ToggleFallDamage(false)
     end
 })
 
@@ -2259,3 +2270,7 @@ VehicleHub.LocalPlayer.CharacterAdded:Connect(function(character)
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
     end
 end)
+
+
+
+
