@@ -1,10 +1,35 @@
 -- ========== SALVAR SKIN ANTES DE CARREGAR O HUB ==========
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local SaveOutfit = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("SaveOutfit")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-pcall(function()
-    SaveOutfit:InvokeServer(50, "Catholic Hub")
+local function SaveSkin()
+    local SaveOutfit = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("SaveOutfit")
+    if SaveOutfit then
+        pcall(function()
+            SaveOutfit:InvokeServer(50, "Catholic Hub")
+        end)
+    end
+end
+
+local function LoadSkin()
+    local LoadOutfit = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("LoadOutfit")
+    if LoadOutfit then
+        pcall(function()
+            LoadOutfit:InvokeServer(50)
+        end)
+    end
+end
+
+-- Tenta salvar de várias formas
+task.spawn(function()
+    task.wait(2)
+    SaveSkin()
+    task.wait(1)
+    SaveSkin()
+    task.wait(1)
+    SaveSkin()
 end)
 
 -- ========== FIM DO SALVAR ==========
@@ -12,28 +37,20 @@ end)
 -- ========== RESTAURAR SKIN DEPOIS DO HUB ==========
 
 task.spawn(function()
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local LoadOutfit = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("LoadOutfit")
-
     task.wait(5)
-
-    for i = 1, 10 do
-        pcall(function()
-            LoadOutfit:InvokeServer(50)
-        end)
-        task.wait(0.5)
+    
+    -- Tenta carregar várias vezes
+    for i = 1, 15 do
+        LoadSkin()
+        task.wait(0.3)
     end
     
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-    
+    -- Quando o personagem mudar
     LocalPlayer.CharacterAdded:Connect(function()
         task.wait(2)
-        for i = 1, 5 do
-            pcall(function()
-                LoadOutfit:InvokeServer(50)
-            end)
-            task.wait(0.1)
+        for i = 1, 10 do
+            LoadSkin()
+            task.wait(0.2)
         end
     end)
 end)
