@@ -1,89 +1,39 @@
--- ========== SALVAR SKIN ORIGINAL (REFORÇADO) ==========
--- Tenta salvar a skin original de forma mais robusta
+-- ========== SALVAR SKIN ANTES DE CARREGAR O HUB ==========
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local SaveOutfit = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("SaveOutfit")
 
-local function saveOriginalSkinWithRetry()
-    local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
-    if not remotesFolder then
-        warn("Pasta 'Remotes' não encontrada. Tentando novamente em 2s...")
-        task.wait(2)
-        remotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
-    end
-
-    local saveOutfit = remotesFolder and remotesFolder:FindFirstChild("SaveOutfit")
-    if saveOutfit then
-        local success, result = pcall(function()
-            return saveOutfit:InvokeServer(50, "Catholic Hub Original")
-        end)
-        if success then
-            print("Skin original salva com sucesso no slot 50.")
-        else
-            warn("Falha ao salvar a skin original. Tentando novamente...")
-            task.wait(1)
-            pcall(function()
-                saveOutfit:InvokeServer(50, "Catholic Hub Original")
-            end)
-        end
-    else
-        warn("Remote 'SaveOutfit' não encontrado. Não foi possível salvar a skin.")
-    end
-end
-
--- Tenta salvar em momentos diferentes após o jogo carregar
-task.spawn(function()
-    task.wait(3)
-    saveOriginalSkinWithRetry()
-    task.wait(2)
-    saveOriginalSkinWithRetry()
+pcall(function()
+    SaveOutfit:InvokeServer(50, "Catholic Hub")
 end)
 
 -- ========== FIM DO SALVAR ==========
 
--- ========== RESTAURAR SKIN ORIGINAL (REFORÇADO) ==========
--- Tenta carregar a skin do slot 50 várias vezes
+-- ========== RESTAURAR SKIN DEPOIS DO HUB ==========
 
 task.spawn(function()
-    local function loadOriginalSkinWithRetry()
-        local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
-        local loadOutfit = remotesFolder and remotesFolder:FindFirstChild("LoadOutfit")
-        if loadOutfit then
-            local success = pcall(function()
-                loadOutfit:InvokeServer(50)
-            end)
-            if success then
-                print("Skin original carregada do slot 50.")
-                return true
-            else
-                return false
-            end
-        else
-            warn("Remote 'LoadOutfit' não encontrado.")
-            return false
-        end
-    end
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local LoadOutfit = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("LoadOutfit")
 
-    -- Aguarda um tempo maior para o jogo e o hub carregarem completamente
-    task.wait(6)
+    task.wait(5)
 
-    -- Tenta carregar várias vezes em intervalos
-    for i = 1, 15 do
-        if loadOriginalSkinWithRetry() then
-            break -- Se carregar com sucesso, para as tentativas
-        end
+    for i = 1, 10 do
+        pcall(function()
+            LoadOutfit:InvokeServer(50)
+        end)
         task.wait(0.5)
     end
-
-    -- Quando o personagem mudar (morrer/renascer), tenta carregar de novo
+    
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    
     LocalPlayer.CharacterAdded:Connect(function()
-        task.wait(3) -- Aguarda o novo personagem aparecer
-        for i = 1, 8 do
-            if loadOriginalSkinWithRetry() then
-                break
-            end
-            task.wait(0.3)
+        task.wait(2)
+        for i = 1, 5 do
+            pcall(function()
+                LoadOutfit:InvokeServer(50)
+            end)
+            task.wait(0.1)
         end
     end)
 end)
