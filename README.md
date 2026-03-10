@@ -1848,429 +1848,326 @@ game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1Ca1r"):Fi
 
 local Section = Tab:AddSection({"Car Trolls"})
 
-local Dropdown = Tab:AddDropdown({
-    Name = "Select Player Car",
-    Description = " ",
-    Default = nil,
-    Options = VehicleHub:UpdateVehicleList(),
-    Callback = function(selectedCar)
-        _G.SelectedVehicle = selectedCar
-    end
-})
+---------------------------------------------------------------------------------------------------------------------------------
+                                          -- === Tab: Musica === --
+---------------------------------------------------------------------------------------------------------------------------------
+local Tab = Window:MakeTab({"Music", "music"}) 
+local Section = Tab:AddSection({"Requires GamePass Music"})
 
-Tab:AddToggle({
-    Name = "View Car",
-    Description = " ",
-    Default = false,
-    Callback = function(state)
-        if state then
-            if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
-                VehicleHub:ShowNotification("No car selected!")
-                return
-            end
+local function tocarMusica(id)
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    
+    -- Rádio (ToolMusicText)
+    local argsRadio = {
+        [1] = "ToolMusicText",
+        [2] = id
+    }
+    ReplicatedStorage:WaitForChild("RE"):WaitForChild("PlayerToolEvent"):FireServer(unpack(argsRadio))
+    
+    -- Casa (PickHouseMusicText)
+    local argsCasa = {
+        [1] = "PickHouseMusicText",
+        [2] = id
+    }
+    ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Player1sHous1e"):FireServer(unpack(argsCasa))
 
-            local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
-            if not vehiclesFolder then
-                VehicleHub:ShowNotification("Vehicles folder not found!")
-                return
-            end
+    -- Carro (PickingCarMusicText)
+    local argsCarro = {
+        [1] = "PickingCarMusicText",
+        [2] = id
+    }
+    ReplicatedStorage:WaitForChild("RE"):WaitForChild("1Player1sCa1r"):FireServer(unpack(argsCarro))
 
-            local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
-            if not vehicle then
-                VehicleHub:ShowNotification("Selected car not found!")
-                return
-            end
+    -- Scooter (PickingScooterMusicText)
+    local argsScooter = {
+        [1] = "PickingScooterMusicText",
+        [2] = id
+    }
+    ReplicatedStorage:WaitForChild("RE"):WaitForChild("1NoMoto1rVehicle1s"):FireServer(unpack(argsScooter))
+end
 
-            local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
-            if not vehicleSeat then
-                VehicleHub:ShowNotification("Car seat not found!")
-                return
-            end
+local function isValidMusicId(value)
+    return value and value ~= "" and value ~= "Option 1" and not value:match("novas musica adds") and not value:match("musica brasil") and not value:match("musica do meu interece") and not value:match("musica dls por elas") and not value:match("meme abaixo") and not value:match("estourada")
+end
 
-            VehicleHub.OriginalCameraSubject = VehicleHub.Camera.CameraSubject
-            VehicleHub.OriginalCameraType = VehicleHub.Camera.CameraType
-
-            VehicleHub.Camera.CameraSubject = vehicleSeat
-            VehicleHub.Camera.CameraType = Enum.CameraType.Follow
-            VehicleHub:ShowNotification("Camera set to " .. _G.SelectedVehicle .. "!")
-        else
-            if VehicleHub.OriginalCameraSubject then
-                VehicleHub.Camera.CameraSubject = VehicleHub.OriginalCameraSubject
-                VehicleHub.Camera.CameraType = VehicleHub.OriginalCameraType or Enum.CameraType.Custom
-                VehicleHub:ShowNotification("Camera restored!")
-                VehicleHub.OriginalCameraSubject = nil
-                VehicleHub.OriginalCameraType = nil
-            end
+Tab:AddTextBox({
+    Name = "Music ID",
+    PlaceholderText = "Example: 117841711314186",
+    Callback = function(value)
+        if value and value ~= "" then
+            tocarMusica(tostring(value))
         end
     end
 })
 
-VehicleHub.Workspace:WaitForChild("Vehicles").ChildAdded:Connect(function()
-    Dropdown:Set(VehicleHub:UpdateVehicleList())
-end)
-VehicleHub.Workspace:WaitForChild("Vehicles").ChildRemoved:Connect(function()
-    Dropdown:Set(VehicleHub:UpdateVehicleList())
-end)
+-- Dropdowns para Tab
+local function createMusicDropdown(title, musicOptions, defaultOption)
+    local musicNames = {}
+    local categoryMap = {}
+    for category, sounds in pairs(musicOptions) do
+        for _, music in ipairs(sounds) do
+            if music.name ~= "" then
+                table.insert(musicNames, music.name)
+                categoryMap[music.name] = {id = music.id, category = category}
+            end
+        end
+    end
 
+    local function playMusic(soundId)
+        tocarMusica(tostring(soundId)) -- Usa a função tocarMusica para tocar em todos os contextos
+    end
+
+    Tab:AddDropdown({
+        Name = title,
+        Description = "",
+        Default = defaultOption,
+        Multi = false,
+        Options = musicNames,
+        Callback = function(selectedSound)
+            if selectedSound and categoryMap[selectedSound] then
+                local soundId = categoryMap[selectedSound].id
+                if soundId and soundId ~= "" and soundId ~= "4354908569" then
+                    playMusic(soundId)
+                end
+            end
+        end
+    })
+end
+
+-- Dropdown "Forró"
+createMusicDropdown("Forró", {
+    ["forro"] = {
+        {name = "forró ja cansou", id = "74812784884330"},
+        {name = "lenbro ate hoje", id = "71531533552899"},
+        {name = "escolha certa", id = "107088620814881"},
+        {name = "forró da rezenha", id = "120973520531216"},
+        {name = "forró dudu", id = "74404168179733"},
+        {name = "forró sao joao", id = "106364874935196"},
+        {name = "forró engraçado paia", id = "76524290482399"},
+        {name = "100% forro vaquejada", id = "92295159623916"},
+        
+        {name = "PASTOR MIRIM E A LÍNGUA DOS ANJOS", id = "71153532555470"},
+        {name = "PARA NÃO ESQUECER QUEM SOMOS", id = "88937498361674"},
+        {name = "Uno zero", id = "112959083808887"},
+        {name = "Iate do neymar", id = "135738534706063"},
+        {name = "Batidao na aldeia", id = "79953696595578"},
+        {name = "", id = ""},
+        {name = "", id = ""}
+    }
+}, "Option 1")
+
+-- Dropdown "Músicas e Memes Aleatório"
+createMusicDropdown("Random Music and Memes", {
+    ["forro"] = {
+        {name = "ANXIETY (Amapiano Re-fix)", id = "101483901475189"}, 
+        {name = "Meu corpo, minhas regras", id = "127587901595282"},
+        {name = "$$$$gg$$$$gg", id = "137471775091253"},
+        {name = "Megalovania but its only the melodies", id = "104500091160463"},
+        {name = "androphono strikes back", id = "78312089943968"},
+        {name = "Bamm Bamm", id = "128730685516895"},
+        {name = "chupa cabra", id = "132890273173295"},
+        {name = "longe de mais", id = "124478512057763"},
+        {name = "Garoto de Copacabana", id = "135648634110254"},
+        {name = "CELL!", id = "117634275895085"},
+        {name = "Boa vibe em Ubatuba", id = "139059061493558"},
+        {name = "SLIP AWAY", id = "126152928520174"},
+        {name = "Alone in Motion", id = "122379348696948"},
+        {name = "Fade Away", id = "81002139735874"},
+        {name = "Wounds & Wishes", id = "109347979566607"},
+        {name = "Ascensão do Monarca", id = "101864243033211"},
+        {name = "carro do ovo", id = "3148329638"},
+        {name = "ingles bus (fling ou kill bus)", id = "123268013026823"},
+        {name = "MIKU MIKU HATSUNE", id = "112783541496955"},
+        {name = "Five Nights at Freddy's", id = "110733765539890"},
+        {name = "Rat Dance", id = "133496635668044"},
+        {name = "Escalando a Seleção Brasileira para a Copa", id = "116546457407236"},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""}
+    }
+}, "Option 1")
+
+-- Dropdown "Funk"
+createMusicDropdown("Funk", {
+    ["Funk"] = {
+        {name = "Mirrors Demo Funk", id = "73295033713326"}, 
+        {name = "7 weeks 3 days funk", id = "82149511707056"},
+        {name = "sua mulher funk", id = "90844637105538"},
+        {name = "fuga na viatura", id = "131891110268352"},
+        {name = "funkphonk fumando verde", id = "112143944982807"},
+        {name = "cauma xmara", id = "95664293972405"},
+        {name = "que que sharke", id = "129546408528391"},
+        {name = "Il Cacto Hipopotamo FUNK", id = "104491656009142"},
+        {name = "Espressora Signora FUNK", id = "123394392737234"},
+        {name = "trippi troop funk", id = "73049389767013"},
+        {name = "bombini funkphonk", id = "88814770244609"},
+        {name = "pre treino", id = "136869502216760"},
+        {name = "CVRL", id = "124244582950595"},
+        {name = "batida Brega Violino (Beat Brega Funk)", id = "99399643204701"},
+        {name = "Dança do Canguru (Pke Gaz1nh)", id = "86876136192157"},
+        {name = "espere 30segundos!! Ondas sonoras", id = "127757321382838"},
+        {name = "MONTAGEM ARABIANA (Pke Gaz1nh)", id = "78076624091098"},
+        {name = "Manda o papo (NGI)", id = "132642647937688"},
+        {name = "Viver bem", id = "82805460494325"},
+        {name = "Faixa estronda", id = "121187736532042"},
+        {name = "Ritmo Pixelado", id = "93928823862203"},
+        {name = "Viagem Sonora", id = "79349174602261"},
+        {name = "Melodia Virtual", id = "139147474886402"},
+        {name = "Melodia Serena", id = "97011217688307"},
+        {name = "SENTA", id = "124085422276732"},
+        {name = "TUNG TUNG TUNG TUNG SAHUR PHONK BRASILEIRO", id = "120353876640055"},
+        {name = "crazy-lol", id = "106958630419629"},
+        {name = "V7", id = "80348640826643"},
+        {name = "UIUAH", id = "82894376737849"},
+        {name = "meta ritmo", id = "110091098283354"},
+        {name = "CAPPUCCINO ASSASSINO (SPEDUP)", id = "132733033157915"},
+        {name = "haha (NGI)", id = "122114766584918"},
+        {name = "DO PO", id = "114207745067816"},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""}
+    }
+}, "Option 1")
+
+-- Dropdown "Phonk"
+createMusicDropdown("Phonk", {
+    ["phonk"] = {
+        {name = "Phonk Agressive", id = "117841711314186"},
+        {name = "wyles", id = "85385155970460"},
+        {name = "phonk kawai", id = "91502410121438"},
+        {name = "querendo da a bucet@", id = "72720721570850"},
+        {name = "vem no pocpoc", id = "102333419023382"},
+        {name = "tatiu wim", id = "122871512353520"},
+        {name = "novinha sapeca", id = "111668097052966"},
+        {name = "novinha representa", id = "93786060174790"},
+        {name = "phonk1", id = "77501611905348"},
+        {name = "phonk2", id = "126887144190812"},
+        {name = "phonk osadia", id = "88033569921555"},
+        {name = "phonk sarra", id = "132436320685732"},
+        {name = "relaionamento sem crush", id = "105832154444494"},
+        {name = "phonk3", id = "90323407842935"},
+        {name = "novinha dançapanpa", id = "132245626038510"},
+        {name = "phonk sexoagreçivo", id = "111995323199676"},
+        {name = "phonk4", id = "115016589376700"},
+        {name = "phonk5", id = "118740708757685"},
+        {name = "phonk6", id = "139435437308948"},
+        {name = "phonk chapaquente", id = "109189438638906"},
+        {name = "phonk rajada", id = "105126065014034"},
+        {name = "rede globo", id = "138487820505005"},
+        {name = "phonk indiano", id = "87968531262747"},
+        {name = "vapo do vapo", id = "106317184644394"},
+        {name = "tutatatutata", id = "112068892721408"},
+        {name = "phonk slower", id = "122852029094656"},
+        {name = "phonk9", id = "91760524161503"},
+        {name = "phonk10", id = "73140398421340"},
+        {name = "phonk11", id = "137962454483542"},
+        {name = "phonk12", id = "84733736048142"},
+        {name = "phonk13", id = "106322173003761"},
+        {name = "phonk14", id = "94604796823780"},
+        {name = "phonk15", id = "118063577904953"},
+        {name = "phonk16", id = "115567432786512"},
+        {name = "phonk toq", id = "71304501822029"},
+        {name = "phonk hey", id = "132218979961283"},
+        {name = "phonk17", id = "102708912256857"},
+        {name = "phonk18", id = "140642559093189"},
+        {name = "phonk neve", id = "13530439660"},
+        {name = "phonk19", id = "87863924786534"},
+        {name = "phonk20", id = "133135085604736"},
+        {name = "phonk lento", id = "97258811783169"},
+        {name = "phonk21", id = "92308400487695"},
+        {name = "tipo wym", id = "88064647826500"},
+        {name = "estouradassa1", id = "92175624643620"},
+        {name = "estouradassa2", id = "108099943758978"},
+        {name = "Naaaaa", id = "109784877184952"},
+        {name = "trem", id = "114608169341947"},
+        {name = "eoropa", id = "111346133543699"},
+        {name = "atimosphekika", id = "77857496821844"},
+        {name = "phonk ALL THE TIME", id = "123809083385992"},
+        {name = "Lifelong Memory", id = "81929101024622"},
+        {name = "Automotivo Blondie (Pke Gaz1nh)", id = "74564219749776"},
+        {name = "สวัสดีคนไทย v2", id =  "118225359190317"},
+        {name = "MTG TU VAI SENTAR (Pke Gaz1nh)", id = "115317874112657"},
+        {name = "SARRA FUNK", id = "96249826607044"},
+        {name = "Catuquanvan", id = "88038595663211"},
+        {name = "F-D-1 (slowed)", id = "124958445624871"},
+        {name = "Sucessagem", id = "88551699463723"},
+        {name = "ILOVE phonksla", id = "82148953715595"},
+        {name = "SPEED SLIDE", id = "118959437310311"},
+        {name = "TOMA FUNK PHONK", id = "126291069838831"},
+        {name = "PASSO BEM SOLTO X NEW JAZZ", id = "122706595087279"},
+        {name = "MONTAGEM BIONICA DIAMANTE", id = "122338822665007"},
+        {name = "BALA SELVAGEM!", id = "96180057167470"},
+        {name = "Luz <3", id = "74281337525581"},
+        {name = "COMO TU", id = "86928685812280"},
+        {name = "MONTAGEM SOLAR TROPICANO (SPEED UP)", id = "116461681407294"},
+        {name = "MONTAGEM SOLAR TROPICANO (SLOWED)", id = "109308273341422"},
+        {name = "YO DE TI", id = "125181345407169"},
+        {name = "Beauty, (Phonk), Super sped up", id = "71123357599630"},
+        {name = "MONTAGEM BOOMBOX DO MALA FUNK", id = "86537505028256"},
+        {name = "BRAZIL DO FUNK", id = "133498554139200"},
+        {name = "BRR BRR PATAPIM FUNK", id = "117170901476451"},
+        {name = "MONTAGEM TERRA BELA FUNK", id = "134770548505933"},
+        {name = "FUNK DO RAVE 1.0", id = "137135395010424"},
+        
+        {name = " Portao Funk", id = "70900514961735"},
+        {name = " Espaço Funk", id = "110519906029322"},
+        {name = " FUTABA", id = "91834632690710"},
+        {name = " Melódica Explosão De Melodia", id = "98371771055411"},
+        {name = " RASGO", id = "98267810117949"},
+        {name = " HIPNOTIZA", id = "117668905142866"},
+        {name = "CRISTAL NOTURNO", id = "103695219371872"},
+        {name = " SKY HIGH", id = "123517126955383"},
+        {name = "MIKU top", id = "102771149931910"},
+        {name = " ACABU SO FUNK", id = "127870227978818"},
+        {name = "CREATIFE FUNK", id = "130525387712209"},
+        {name = "GOTH FUNK", id = "97662362226511"},
+        {name = "PORTUGESE FUNK", id = "125858109122379"},
+        {name = "SUBURBANA", id = "139825057894568"},
+        {name = "ESPERA LA NOCHE FUNK", id = "139768056738146"},
+        {name = "SIN PERMISO FUNK", id = "92572896648274"},
+        {name = "MONTAGEM DACE RAT", id = "98711199754623"},
+        {name = " LOVELY FUNK", id = "130633105268814"},
+        {name = "STORYMODECOOL", id = "87115976125426"},
+        {name = "BLACK COFFEE FUNK", id = "82705137378395"},
+        {name = "KOBALT", id = "79381341943021"},
+        {name = " andante bacterial", id = "105882833374061"},
+        {name = "ANGEL Speed Up", id = "139593870988593"},
+        {name = "LUTA ÉPICA", id = "73966367524216"},
+        {name = "MALDITA", id = "133814632960968"},
+        {name = "DA ZONA NTJ VERSON", id = "105770593501071"},
+        {name = "HIPNOTIZA", id = "132015050363205"},
+        {name = "MIDZUKI speed up", id = "129151948619922"},
+        
+        {name = "movimenta funk", id = "114994598691121"},
+        {name = "CRISTAL", id = "103445348511856"},
+        {name = "Letero funkphonk", id = "99409598156364"},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""},
+        {name = "", id = ""}
+    }
+}, "Option 1")
 
 Tab:AddButton({
-    Name = "Destroy Car",
-    Description = " ",
+    Name = "Stop",
+    Description = "",
     Callback = function()
-        if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
-            VehicleHub:ShowNotification("No car selected!")
-            return
-        end
-
-        local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
-        if not vehiclesFolder then
-            VehicleHub:ShowNotification("Vehicles folder not found!")
-            return
-        end
-
-        local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
-        if not vehicle then
-            VehicleHub:ShowNotification("Selected car not found!")
-            return
-        end
-
-        local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
-        if not vehicleSeat then
-            VehicleHub:ShowNotification("Car seat not found!")
-            return
-        end
-
-        if vehicleSeat.Occupant then
-            VehicleHub:ShowNotification("Cannot kill car, someone is in the driver seat!")
-            return
-        end
-
-        local originalPos
-        if VehicleHub.LocalPlayer.Character and VehicleHub.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            originalPos = VehicleHub.LocalPlayer.Character.HumanoidRootPart.Position
-        else
-            VehicleHub:ShowNotification("Player character not found!")
-            return
-        end
-
-        VehicleHub:ToggleFallDamage(true)
-        local success = VehicleHub:TeleportToSeat(vehicleSeat, vehicle)
-        if success then
-            VehicleHub:TeleportToVoid(vehicle)
-            VehicleHub:ShowNotification("Car " .. _G.SelectedVehicle .. " teleported to void!")
-            VehicleHub:ExitCarAndReturn(originalPos)
-        else
-            VehicleHub:ShowNotification("Failed to sit in car!")
-        end
-        VehicleHub:ToggleFallDamage(false)
+        tocarMusica("")
     end
 })
-
-Tab:AddButton({
-    Name = "Bring Car",
-    Description = " ",
-    Callback = function()
-        if not _G.SelectedVehicle or _G.SelectedVehicle == "" then
-            VehicleHub:ShowNotification("No car selected!")
-            return
-        end
-
-        local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
-        if not vehiclesFolder then
-            VehicleHub:ShowNotification("Vehicles folder not found!")
-            return
-        end
-
-        local vehicle = vehiclesFolder:FindFirstChild(_G.SelectedVehicle)
-        if not vehicle then
-            VehicleHub:ShowNotification("Selected car not found!")
-            return
-        end
-
-        local vehicleSeat = vehicle:FindFirstChildWhichIsA("VehicleSeat", true)
-        if not vehicleSeat then
-            VehicleHub:ShowNotification("Car seat not found!")
-            return
-        end
-
-        if vehicleSeat.Occupant then
-            VehicleHub:ShowNotification("Cannot teleport car, someone is in the driver seat!")
-            return
-        end
-
-        local originalPos
-        if VehicleHub.LocalPlayer.Character and VehicleHub.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            originalPos = VehicleHub.LocalPlayer.Character.HumanoidRootPart.Position
-        else
-            VehicleHub:ShowNotification("Player character not found!")
-            return
-        end
-
-        VehicleHub:ToggleFallDamage(true)
-        local success = VehicleHub:TeleportToSeat(vehicleSeat, vehicle)
-        if success then
-            VehicleHub:TeleportToPlayer(vehicle, originalPos)
-            VehicleHub:ShowNotification("Car " .. _G.SelectedVehicle .. " teleported to you!")
-            VehicleHub:ExitCarAndReturn(originalPos)
-        else
-            VehicleHub:ShowNotification("Failed to sit in car!")
-        end
-        VehicleHub:ToggleFallDamage(false)
-    end
-})
-
-
-local Section = Tab:AddSection({"All Car Functions"})
-
-shared.g = shared.g or {}
-shared.g.Players = game:GetService("Players")
-shared.g.Workspace = game:GetService("Workspace")
-shared.g.LocalPlayer = shared.g.Players.LocalPlayer
-shared.g.Camera = shared.g.Workspace.CurrentCamera
-
-local VehicleHub = {}
-VehicleHub.Players = shared.g.Players
-VehicleHub.Workspace = shared.g.Workspace
-VehicleHub.LocalPlayer = shared.g.LocalPlayer
-VehicleHub.Camera = shared.g.Camera
-
-function VehicleHub:ShowNotification(message)
-end
-
-function VehicleHub:ToggleFallDamage(disable)
-    if not self.LocalPlayer.Character or not self.LocalPlayer.Character:FindFirstChild("Humanoid") then return false end
-    local humanoid = self.LocalPlayer.Character.Humanoid
-    if disable then
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, true)
-        humanoid.PlatformStand = false
-        return true
-    else
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
-        return false
-    end
-end
-
-function VehicleHub:TeleportToSeat(seat, car)
-    if not self.LocalPlayer.Character or not self.LocalPlayer.Character:FindFirstChild("Humanoid") then
-        self:ShowNotification("Character not found!")
-        return false
-    end
-    local humanoid = self.LocalPlayer.Character.Humanoid
-    local rootPart = self.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then
-        self:ShowNotification("Character root part not found!")
-        return false
-    end
-
-    humanoid.Sit = false
-    task.wait(0.1)
-
-    rootPart.CFrame = seat.CFrame + Vector3.new(0, 5, 0)
-    task.wait(0.1)
-
-    seat:Sit(humanoid)
-    task.wait(0.5)
-    return humanoid.SeatPart == seat
-end
-
-function VehicleHub:TeleportToVoid(car)
-    if not car then
-        self:ShowNotification("Invalid vehicle!")
-        return
-    end
-    if not car.PrimaryPart then
-        local body = car:FindFirstChild("Body", true) or car:FindFirstChild("Chassis", true)
-        if body and body:IsA("BasePart") then
-            car.PrimaryPart = body
-        else
-            self:ShowNotification("Vehicle primary part not found!")
-            return
-        end
-    end
-    local voidPosition = Vector3.new(0, -1000, 0)
-    car:SetPrimaryPartCFrame(CFrame.new(voidPosition))
-    task.wait(0.5)
-end
-
-function VehicleHub:TeleportToPlayer(car, playerPos)
-    if not car then
-        self:ShowNotification("Invalid vehicle!")
-        return
-    end
-    if not car.PrimaryPart then
-        local body = car:FindFirstChild("Body", true) or car:FindFirstChild("Chassis", true)
-        if body and body:IsA("BasePart") then
-            car.PrimaryPart = body
-        else
-            self:ShowNotification("Vehicle primary part not found!")
-            return
-        end
-    end
-    local targetPos = playerPos + Vector3.new(5, 0, 5)
-    car:SetPrimaryPartCFrame(CFrame.new(targetPos))
-    task.wait(0.5)
-end
-
-function VehicleHub:SafeExitCar(originalPos)
-    if not self.LocalPlayer.Character or not self.LocalPlayer.Character:FindFirstChild("Humanoid") then return end
-    local humanoid = self.LocalPlayer.Character.Humanoid
-    local rootPart = self.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    
-    -- Sai do carro
-    if humanoid.SeatPart then
-        humanoid.Sit = false
-    end
-    task.wait(0.1)
-    
-    -- Pula antes de teleportar
-    if humanoid then
-        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-    task.wait(0.1)
-    
-    -- Teleporta para posição segura
-    if originalPos and rootPart then
-        rootPart.CFrame = CFrame.new(originalPos + Vector3.new(0, 5, 0))
-    end
-end
-
-function VehicleHub:UpdateVehicleList()
-    local vehiclesFolder = self.Workspace:FindFirstChild("Vehicles")
-    local carList = {}
-    
-    if vehiclesFolder then
-        for _, car in ipairs(vehiclesFolder:GetChildren()) do
-            if car.Name:match("Car$") then
-                table.insert(carList, car.Name)
-            end
-        end
-    end
-    
-    return carList
-end
-
-Tab:AddToggle({
-    Name = "Kill All Cars",
-    Description = " ",
-    Default = false,
-    Callback = function(state)
-        local originalPosition
-        local teleportActive = state
-        local fallDamageDisabled = false
-
-        if state then
-            if VehicleHub.LocalPlayer.Character and VehicleHub.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                originalPosition = VehicleHub.LocalPlayer.Character.HumanoidRootPart.Position
-            else
-                VehicleHub:ShowNotification("Character not found!")
-                return
-            end
-
-            fallDamageDisabled = VehicleHub:ToggleFallDamage(true)
-
-            spawn(function()
-                local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
-                if not vehiclesFolder then
-                    VehicleHub:ShowNotification("Vehicles folder not found!")
-                    return
-                end
-
-                local cars = {}
-                for _, car in ipairs(vehiclesFolder:GetChildren()) do
-                    if car.Name:match("Car$") then
-                        table.insert(cars, car)
-                    end
-                end
-
-                for _, car in ipairs(cars) do
-                    if not teleportActive then break end
-
-                    local vehicleSeat = car:FindFirstChildWhichIsA("VehicleSeat", true)
-                    if vehicleSeat and vehicleSeat.Occupant == nil then
-                        local success = VehicleHub:TeleportToSeat(vehicleSeat, car)
-                        if success then
-                            VehicleHub:TeleportToVoid(car)
-                            VehicleHub:SafeExitCar(originalPosition) -- Agora usa SafeExitCar
-                            task.wait(1)
-                        end
-                    end
-                end
-
-                if teleportActive then
-                    teleportActive = false
-                    VehicleHub:ToggleFallDamage(false)
-                end
-            end)
-        else
-            teleportActive = false
-            VehicleHub:ToggleFallDamage(false)
-        end
-    end
-})
-
-Tab:AddButton({
-    Name = "Bring All Cars",
-    Description = " ",
-    Callback = function()
-        local originalPos
-        if VehicleHub.LocalPlayer.Character and VehicleHub.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            originalPos = VehicleHub.LocalPlayer.Character.HumanoidRootPart.Position
-        else
-            VehicleHub:ShowNotification("Player character not found!")
-            return
-        end
-
-        local vehiclesFolder = VehicleHub.Workspace:FindFirstChild("Vehicles")
-        if not vehiclesFolder then
-            VehicleHub:ShowNotification("Vehicles folder not found!")
-            return
-        end
-
-        VehicleHub:ToggleFallDamage(true)
-        local cars = {}
-        for _, car in ipairs(vehiclesFolder:GetChildren()) do
-            if car.Name:match("Car$") then
-                table.insert(cars, car)
-            end
-        end
-
-        for _, car in ipairs(cars) do
-            local vehicleSeat = car:FindFirstChildWhichIsA("VehicleSeat", true)
-            if vehicleSeat and vehicleSeat.Occupant == nil then
-                local success = VehicleHub:TeleportToSeat(vehicleSeat, car)
-                if success then
-                    VehicleHub:TeleportToPlayer(car, originalPos)
-                    VehicleHub:ExitCarAndReturn(originalPos)
-                    VehicleHub:ShowNotification("Car " .. car.Name .. " teleported to you!")
-                    task.wait(1)
-                end
-            end
-        end
-
-        VehicleHub:ToggleFallDamage(false)
-        if #cars == 0 then
-            VehicleHub:ShowNotification("No cars available to teleport!")
-        end
-    end
-})
-
-local fallDamageDisabled = false
-VehicleHub.LocalPlayer.CharacterAdded:Connect(function(character)
-    local humanoid = character:WaitForChild("Humanoid")
-    if fallDamageDisabled then
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, true)
-        humanoid.PlatformStand = false
-    else
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
-    end
-end)
-
-
-
-
