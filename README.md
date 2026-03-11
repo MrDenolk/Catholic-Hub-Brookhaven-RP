@@ -2171,3 +2171,566 @@ Tab:AddButton({
         tocarMusica("")
     end
 })
+
+---------------------------------------------------------------------------------------------------------------------------------
+                                                   -- === Tab: Protections, === --
+---------------------------------------------------------------------------------------------------------------------------------
+local Tab = Window:MakeTab({"Protections", "Shield"})
+local Section = Tab:AddSection({"Advanced Protections"})
+
+local CatholicPlayer = game:GetService("Players").LocalPlayer
+local CatholicWorkspace = game:GetService("Workspace")
+local CatholicRunService = game:GetService("RunService")
+
+local catholicBackupStorage = {
+    vehicles = {},
+    canoes = {},
+    jets = {},
+    helis = {},
+    balls = {},
+    sounds = {}
+}
+
+local catholicActiveConnections = {}
+
+local function catholicStoreObject(obj, storageKey)
+    if not obj or not obj.Parent then return end
+    catholicBackupStorage[storageKey][obj] = obj.Parent
+    obj.Parent = nil
+end
+
+local function catholicRestoreObjects(storageKey)
+    for obj, parent in pairs(catholicBackupStorage[storageKey]) do
+        if obj and parent then
+            obj.Parent = parent
+        end
+    end
+    catholicBackupStorage[storageKey] = {}
+end
+
+local function catholicDisconnectService(serviceName)
+    if catholicActiveConnections[serviceName] then
+        catholicActiveConnections[serviceName]:Disconnect()
+        catholicActiveConnections[serviceName] = nil
+    end
+end
+
+local function catholicIsPlayerOwnedVehicle(vehicle)
+    for _, part in ipairs(vehicle:GetDescendants()) do
+        if (part:IsA("VehicleSeat") or part:IsA("Seat")) and part.Occupant then
+            if part.Occupant.Parent == CatholicPlayer.Character then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+Tab:AddToggle({
+    Name = "Ant Fling Cars",
+    Default = false,
+    Callback = function(state)
+        if state then
+            catholicActiveConnections.vehicles = CatholicRunService.Heartbeat:Connect(function()
+                local vehiclesFolder = CatholicWorkspace:FindFirstChild("Vehicles")
+                if not vehiclesFolder then return end
+                
+                for _, vehicle in ipairs(vehiclesFolder:GetChildren()) do
+                    if not catholicIsPlayerOwnedVehicle(vehicle) then
+                        catholicStoreObject(vehicle, "vehicles")
+                    end
+                end
+            end)
+        else
+            catholicDisconnectService("vehicles")
+            catholicRestoreObjects("vehicles")
+        end
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Fling Canoe",
+    Default = false,
+    Callback = function(state)
+        if state then
+            catholicActiveConnections.canoes = CatholicRunService.Heartbeat:Connect(function()
+                local storage = CatholicWorkspace:FindFirstChild("WorkspaceCom")
+                if storage then
+                    storage = storage:FindFirstChild("001_CanoeStorage")
+                end
+                if not storage then return end
+                
+                for _, canoe in ipairs(storage:GetChildren()) do
+                    local owner = canoe:FindFirstChild("Owner")
+                    if not owner or owner.Value ~= CatholicPlayer then
+                        catholicStoreObject(canoe, "canoes")
+                    end
+                end
+            end)
+        else
+            catholicDisconnectService("canoes")
+            catholicRestoreObjects("canoes")
+        end
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Fling Jets",
+    Default = false,
+    Callback = function(state)
+        if state then
+            catholicActiveConnections.jets = CatholicRunService.Heartbeat:Connect(function()
+                local path = CatholicWorkspace:FindFirstChild("WorkspaceCom")
+                if path then path = path:FindFirstChild("001_Airport") end
+                if path then path = path:FindFirstChild("AirportHanger") end
+                if path then path = path:FindFirstChild("001_JetStorage") end
+                if path then path = path:FindFirstChild("JetAirport") end
+                if not path then return end
+                
+                for _, jet in ipairs(path:GetChildren()) do
+                    if jet.Name ~= CatholicPlayer.Name then
+                        catholicStoreObject(jet, "jets")
+                    end
+                end
+            end)
+        else
+            catholicDisconnectService("jets")
+            catholicRestoreObjects("jets")
+        end
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Fling Helicopter",
+    Default = false,
+    Callback = function(state)
+        if state then
+            catholicActiveConnections.helis = CatholicRunService.Heartbeat:Connect(function()
+                local heliFolder = CatholicWorkspace:FindFirstChild("WorkspaceCom")
+                if heliFolder then
+                    heliFolder = heliFolder:FindFirstChild("001_HeliStorage")
+                end
+                if heliFolder then
+                    heliFolder = heliFolder:FindFirstChild("PoliceStationHeli")
+                end
+                if not heliFolder then return end
+                
+                for _, heli in ipairs(heliFolder:GetChildren()) do
+                    if heli.Name ~= CatholicPlayer.Name then
+                        catholicStoreObject(heli, "helis")
+                    end
+                end
+            end)
+        else
+            catholicDisconnectService("helis")
+            catholicRestoreObjects("helis")
+        end
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Fling Ball",
+    Default = false,
+    Callback = function(state)
+        if state then
+            catholicActiveConnections.balls = CatholicRunService.Heartbeat:Connect(function()
+                local ballFolder = CatholicWorkspace:FindFirstChild("WorkspaceCom")
+                if ballFolder then
+                    ballFolder = ballFolder:FindFirstChild("001_SoccerBalls")
+                end
+                if not ballFolder then return end
+                
+                for _, ball in ipairs(ballFolder:GetChildren()) do
+                    catholicStoreObject(ball, "balls")
+                end
+            end)
+        else
+            catholicDisconnectService("balls")
+            catholicRestoreObjects("balls")
+        end
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Fling Doors",
+    Description = "",
+    Default = false,
+    Callback = function(state)
+        if not _G.hiddenDoors then _G.hiddenDoors = {} end
+        if state then
+            _G.hiddenDoors = {}
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj:IsA("BasePart") and obj.Name:lower():find("door") then
+                    local doorData = {
+                        door = obj,
+                        originalTransparency = obj.Transparency,
+                        originalCanCollide = obj.CanCollide,
+                        originalCastShadow = obj.CastShadow
+                    }
+                    obj.Transparency = 1
+                    obj.CanCollide = false
+                    obj.CastShadow = false
+                    for _, child in ipairs(obj:GetChildren()) do
+                        if child:IsA("BasePart") then
+                            child.Transparency = 1
+                            child.CanCollide = false
+                        elseif child:IsA("SurfaceGui") or child:IsA("BillboardGui") then
+                            child.Enabled = false
+                        end
+                    end
+                    table.insert(_G.hiddenDoors, doorData)
+                end
+            end
+            print("ðŸ”§ " .. #_G.hiddenDoors .. " portas escondidas!")
+        else
+            for _, doorData in ipairs(_G.hiddenDoors or {}) do
+                if doorData.door and doorData.door.Parent then
+                    doorData.door.Transparency = doorData.originalTransparency
+                    doorData.door.CanCollide = doorData.originalCanCollide
+                    doorData.door.CastShadow = doorData.originalCastShadow
+                    for _, child in ipairs(doorData.door:GetChildren()) do
+                        if child:IsA("BasePart") then
+                            child.Transparency = 0
+                            child.CanCollide = true
+                        elseif child:IsA("SurfaceGui") or child:IsA("BillboardGui") then
+                            child.Enabled = true
+                        end
+                    end
+                end
+            end
+            print("âœ… " .. #(_G.hiddenDoors or {}) .. " portas restauradas com funcionalidade!")
+            _G.hiddenDoors = {}
+        end
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Lag",
+    Description = "",
+    Default = false,
+    Callback = function(state)
+        local Players = game:GetService("Players")
+        local dedupLock = {}
+        local IGNORED_PLAYER
+
+        if not state then return end
+
+        local function marcarIgnorado(player)
+            IGNORED_PLAYER = player
+        end
+
+        local function isTargetTool(inst)
+            return inst:IsA("Tool")
+        end
+
+        local function gatherTools(player)
+            local found = {}
+            local containers = {}
+            if player.Character then table.insert(containers, player.Character) end
+            local backpack = player:FindFirstChildOfClass("Backpack")
+            if backpack then table.insert(containers, backpack) end
+            local sg = player:FindFirstChild("StarterGear")
+            if sg then table.insert(containers, sg) end
+            for _, container in ipairs(containers) do
+                for _, child in ipairs(container:GetChildren()) do
+                    if isTargetTool(child) then table.insert(found, child) end
+                end
+            end
+            return found
+        end
+
+        local function dedupePlayer(player)
+            if player == IGNORED_PLAYER then return end
+            if dedupLock[player] then return end
+            dedupLock[player] = true
+            local tools = gatherTools(player)
+            if #tools > 1 then
+                for i = 2, #tools do pcall(function() tools[i]:Destroy() end) end
+            end
+            dedupLock[player] = false
+        end
+
+        local function hookPlayer(player)
+            if not IGNORED_PLAYER then marcarIgnorado(player) end
+            task.defer(dedupePlayer, player)
+            local function setupChar(char)
+                task.delay(0.5, function() dedupePlayer(player) end)
+                char.ChildAdded:Connect(function(child)
+                    if isTargetTool(child) then task.delay(0.1, function() dedupePlayer(player) end) end
+                end)
+            end
+            if player.Character then setupChar(player.Character) end
+            player.CharacterAdded:Connect(setupChar)
+            local backpack = player:WaitForChild("Backpack", 10)
+            if backpack then
+                backpack.ChildAdded:Connect(function(child)
+                    if isTargetTool(child) then task.delay(0.1, function() dedupePlayer(player) end) end
+                end)
+            end
+            local sg = player:FindFirstChild("StarterGear") or player:WaitForChild("StarterGear", 10)
+            if sg then
+                sg.ChildAdded:Connect(function(child)
+                    if isTargetTool(child) then task.delay(0.1, function() dedupePlayer(player) end) end
+                end)
+            end
+        end
+
+        Players.PlayerAdded:Connect(hookPlayer)
+        for _, plr in ipairs(Players:GetPlayers()) do hookPlayer(plr) end
+
+        task.spawn(function()
+            while state do
+                for _, plr in ipairs(Players:GetPlayers()) do dedupePlayer(plr) end
+                task.wait(2)
+            end
+        end)
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Bug",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            
+            local antBugConnections = {}
+            
+            local blacklist = {
+                {Name = "water", Class = "Part"},
+            }
+            
+            local function neutralize(part)
+                if part and part:IsA("BasePart") then
+                    pcall(function()
+                        part.Anchored = true
+                        part.CanCollide = false
+                        part.Massless = true
+                        part.Transparency = 1
+                        part:ClearAllChildren()
+                    end)
+                    pcall(function()
+                        part:Destroy()
+                    end)
+                end
+            end
+            
+            table.insert(antBugConnections, workspace.DescendantAdded:Connect(function(obj)
+                for _, rule in ipairs(blacklist) do
+                    if obj.Name == rule.Name and obj.ClassName == rule.Class then
+                        neutralize(obj)
+                    end
+                end
+            end))
+            
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                for _, rule in ipairs(blacklist) do
+                    if obj.Name == rule.Name and obj.ClassName == rule.Class then
+                        neutralize(obj)
+                    end
+                end
+            end
+            
+            local loopRunning = true
+            task.spawn(function()
+                while loopRunning do
+                    task.wait(0.25)
+                    for _, rule in ipairs(blacklist) do
+                        for _, v in next, getnilinstances() do
+                            if v.Name == rule.Name and v.ClassName == rule.Class then
+                                neutralize(v)
+                            end
+                        end
+                    end
+                end
+            end)
+            
+            local function onCharacterAdded(char)
+                local hum = char:WaitForChild("Humanoid")
+                table.insert(antBugConnections, hum.Touched:Connect(function(hit)
+                    for _, rule in ipairs(blacklist) do
+                        if hit.Name == rule.Name and hit.ClassName == rule.Class then
+                            neutralize(hit)
+                        end
+                    end
+                end))
+            end
+            
+            table.insert(antBugConnections, LocalPlayer.CharacterAdded:Connect(onCharacterAdded))
+            
+            if LocalPlayer.Character then
+                onCharacterAdded(LocalPlayer.Character)
+            end
+            
+            _G.antBugData = {
+                connections = antBugConnections,
+                loopRunning = loopRunning
+            }
+            
+        else
+
+            if _G.antBugData then
+
+                for _, conn in ipairs(_G.antBugData.connections) do
+                    pcall(function()
+                        conn:Disconnect()
+                    end)
+                end
+                
+                _G.antBugData.loopRunning = false
+                
+                _G.antBugData = nil
+            end
+
+        end
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Sit (local)",
+    Default = false,
+    Callback = function(state)
+        if state then
+            catholicActiveConnections.sit = CatholicRunService.Heartbeat:Connect(function()
+                local humanoid = CatholicPlayer.Character and CatholicPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if not humanoid then return end
+                
+                humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                
+                if humanoid:GetState() == Enum.HumanoidStateType.Seated then
+                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                end
+                
+                if humanoid.SeatPart then
+                    humanoid.Sit = false
+                    humanoid.SeatPart = nil
+                end
+            end)
+        else
+            catholicDisconnectService("sit")
+            local humanoid = CatholicPlayer.Character and CatholicPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+            end
+        end
+    end
+})
+
+Tab:AddToggle({
+    Name = "Ant Sound",
+    Default = false,
+    Callback = function(state)
+        if state then
+            catholicActiveConnections.sounds = CatholicRunService.Heartbeat:Connect(function()
+                for _, obj in ipairs(CatholicWorkspace:GetDescendants()) do
+                    if obj:IsA("Sound") then
+                        catholicStoreObject(obj, "sounds")
+                    end
+                end
+            end)
+        else
+            catholicDisconnectService("sounds")
+            catholicRestoreObjects("sounds")
+        end
+    end
+})
+
+
+
+local vGame = game
+local vGetService = vGame.GetService
+local vPlayers = vGetService(vGame, "Players")
+local vLocalPlayer = vPlayers.LocalPlayer
+local vWaitForChild = vLocalPlayer.WaitForChild
+local vPlayerScripts = vWaitForChild(vLocalPlayer, "PlayerScripts")
+
+local vEnabled = false
+local vConnection = nil
+local vScriptName = "BulletVisualizerScript"
+local vLocalScriptType = "LocalScript"
+local vScriptType = "Script"
+local vEventName = "ChildAdded"
+local vNameProperty = "Name"
+local vIpairs = ipairs
+local vTask = task
+local vTaskDefer = vTask.defer
+local vNil = nil
+local vTrue = true
+local vFalse = false
+local vIsA = "IsA"
+local vDestroy = "Destroy"
+local vDisconnect = "Disconnect"
+local vConnect = "Connect"
+local vGetChildren = "GetChildren"
+
+local function vEnableAntiGlitch()
+    local vCurrentConnection = vConnection
+    if vCurrentConnection then 
+        local vOldConnection = vCurrentConnection
+        local vDisconnectMethod = vOldConnection[vDisconnect]
+        vDisconnectMethod(vOldConnection)
+    end
+    local vScriptsObject = vPlayerScripts
+    local vEvent = vScriptsObject[vEventName]
+    local vConnectMethod = vEvent[vConnect]
+    local vNewConnection = vConnectMethod(vEvent, function(vChild)
+        local vChildObject = vChild
+        local vChildName = vChildObject[vNameProperty]
+        local vTargetName = vScriptName
+        if vChildName == vTargetName then
+            local vDeferFunction = vTaskDefer
+            vDeferFunction(function()
+                local vScriptObject = vChildObject
+                local vIsAMethod = vScriptObject[vIsA]
+                local vLocalType = vLocalScriptType
+                local vIsLocalScript = vIsAMethod(vScriptObject, vLocalType)
+                local vScriptTypeCheck = vScriptType
+                local vIsScript = vIsAMethod(vScriptObject, vScriptTypeCheck)
+                local vShouldDestroy = vIsLocalScript or vIsScript
+                if vShouldDestroy then
+                    local vScriptToDestroy = vScriptObject
+                    local vDestroyMethod = vScriptToDestroy[vDestroy]
+                    vDestroyMethod(vScriptToDestroy)
+                end
+            end)
+        end
+    end)
+    vConnection = vNewConnection
+    
+    local vScriptsContainer = vPlayerScripts
+    local vGetChildrenMethod = vScriptsContainer[vGetChildren]
+    local vChildren = vGetChildrenMethod(vScriptsContainer)
+    local vIterator = vIpairs
+    for vIndex, vChildItem in vIterator(vChildren) do
+        local vItemObject = vChildItem
+        local vItemName = vItemObject[vNameProperty]
+        local vTargetScriptName = vScriptName
+        if vItemName == vTargetScriptName then
+            local vItemIsAMethod = vItemObject[vIsA]
+            local vLocalScriptCheck = vLocalScriptType
+            local vItemIsLocalScript = vItemIsAMethod(vItemObject, vLocalScriptCheck)
+            local vScriptCheck = vScriptType
+            local vItemIsScript = vItemIsAMethod(vItemObject, vScriptCheck)
+            local vShouldDestroyItem = vItemIsLocalScript or vItemIsScript
+            if vShouldDestroyItem then
+                local vItemToDestroy = vItemObject
+                local vItemDestroyMethod = vItemToDestroy[vDestroy]
+                vItemDestroyMethod(vItemToDestroy)
+            end
+        end
+    end
+end
+
+local function vDisableAntiGlitch()
+    local vCurrentConnection = vConnection
+    if vCurrentConnection then
+        local vConnectionToDisconnect = vCurrentConnection
+        local vDisconnectMethod = vConnectionToDisconnect[vDisconnect]
+        vDisconnectMethod(vConnectionToDisconnect)
+        local vNilValue = vNil
+        vConnection = vNilValue
+    end
+end
+
