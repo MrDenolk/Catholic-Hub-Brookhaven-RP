@@ -2887,7 +2887,6 @@ Tab:AddButton({
 })
 
 Tab:AddSection({"Troll Props Functions"})
-Tab:AddParagraph({"About the Props", "🇺🇸Simply summon a chair using Prop. Any Prop, whenever you want to use it! 🇧🇷Basta sumonar uma cadeira usando Prop Qualquer uma Sempre que for usar!"})
 
 Tab:AddButton({
     Name = "Kill Target (Prop)",
@@ -2895,58 +2894,56 @@ Tab:AddButton({
     Callback = function()
         local Players = game:GetService("Players")
         local LocalPlayer = Players.LocalPlayer
+        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        
+        for i = 1, 10 do
+
+            local args1 = {
+                "RequestingPropName",
+                "FurnitureBleachers",
+                "Furniture"
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer(unpack(args1))
+            
+            local args2 = {
+                "PickingTools",
+                "PropMaker"
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1Too1l"):InvokeServer(unpack(args2))
+            
+            task.wait(0.1)
+            
+            local tool = LocalPlayer.Backpack:WaitForChild("PropMaker")
+            tool.Parent = char
+            
+            local frente = hrp.CFrame.LookVector * (6 + (i * 2))
+            local offsetDireita = hrp.CFrame.RightVector * (math.random(-5, 5))
+            local pos = hrp.Position + frente + offsetDireita
+            
+            local args3 = {
+                workspace:WaitForChild("Model"):WaitForChild("Sidewalk"),
+                Vector3.new(pos.X, pos.Y, pos.Z)
+            }
+            tool:WaitForChild("Tool_PropMake"):FireServer(unpack(args3))
+            
+            task.wait(0.1)
+        end
+        
+        task.wait(0.5)
         local PropFolder = workspace:FindFirstChild("WorkspaceCom") and workspace.WorkspaceCom:FindFirstChild("001_TrafficCones")
-        if not PropFolder then
-            warn("Pasta do Prop não encontrada!")
-            return
-        end
-        if not SelectedPlayer then
-            warn("Nenhum jogador selecionado.")
-            return
-        end
-        local target = Players:FindFirstChild(SelectedPlayer)
-        if not target or not target.Character then
-            warn("Jogador alvo não encontrado.")
-            return
-        end
-        local Prop = PropFolder:FindFirstChild("Prop" .. LocalPlayer.Name)
-        if not Prop then
-            warn("Prop do jogador local não encontrado! (ex: Prop" .. LocalPlayer.Name .. ")")
-            return
-        end
-        local Remote = Prop:FindFirstChild("SetCurrentCFrame")
-        if not Remote then
-            warn("Remote SetCurrentCFrame não encontrado!")
-            return
-        end
-        task.spawn(function()
-            local sitting = false
-            while target and target.Character and task.wait(0.05) do
-                local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
-                local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-                if not hrp or not humanoid then continue end
-                if humanoid.Sit and not sitting then
-                    sitting = true
-                    pcall(function()
-                        Remote:InvokeServer(CFrame.new(0, -9999, 0))
-                        wait(0.1)
-                        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Clea1rTool1s"):FireServer("ClearAllProps")
-                    end)
+        if PropFolder then
+            for _, prop in pairs(PropFolder:GetChildren()) do
+                if prop.Name:find("Prop") then
+                    local remote = prop:FindFirstChild("SetCurrentCFrame")
+                    if remote then
+                        pcall(function()
+                            remote:InvokeServer(CFrame.new(0, -9999, 0))
+                        end)
+                    end
                 end
-                if not humanoid.Sit and sitting then
-                    sitting = false
-                    pcall(function()
-                        Remote:InvokeServer(hrp.CFrame * CFrame.new(2, 0, 0))
-                    end)
-                end
-                local moving = humanoid.MoveDirection.Magnitude > 0
-                local offset = moving and 6 or 0.1
-                local followCF = hrp.CFrame * CFrame.new(0, 0, -offset)
-                pcall(function()
-                    Remote:InvokeServer(followCF)
-                end)
             end
-        end)
+        end
     end
 })
 
@@ -2956,75 +2953,61 @@ Tab:AddButton({
     Callback = function()
         local Players = game:GetService("Players")
         local LocalPlayer = Players.LocalPlayer
+        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        
+        for i = 1, 10 do
+    
+            local args1 = {
+                "RequestingPropName",
+                "FurnitureBleachers",
+                "Furniture"
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1Clea1rTool1s"):FireServer(unpack(args1))
+            
+            local args2 = {
+                "PickingTools",
+                "PropMaker"
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1Too1l"):InvokeServer(unpack(args2))
+            
+            task.wait(0.1)
+            
+            local tool = LocalPlayer.Backpack:WaitForChild("PropMaker")
+            tool.Parent = char
+            
+            local angulo = (i / 10) * math.pi * 2
+            local raio = 8
+            local offsetX = math.cos(angulo) * raio
+            local offsetZ = math.sin(angulo) * raio
+            local pos = hrp.Position + Vector3.new(offsetX, 0, offsetZ)
+            
+            local args3 = {
+                workspace:WaitForChild("Model"):WaitForChild("Sidewalk"),
+                Vector3.new(pos.X, pos.Y, pos.Z)
+            }
+            tool:WaitForChild("Tool_PropMake"):FireServer(unpack(args3))
+            
+            task.wait(0.1)
+        end
+        
+        task.wait(0.5)
         local PropFolder = workspace:FindFirstChild("WorkspaceCom") and workspace.WorkspaceCom:FindFirstChild("001_TrafficCones")
-        if not PropFolder then
-            warn("Pasta do Prop não encontrada!")
-            return
-        end
-        if not SelectedPlayer then
-            warn("Nenhum jogador selecionado.")
-            return
-        end
-        local target = Players:FindFirstChild(SelectedPlayer)
-        if not target or not target.Character then
-            warn("Jogador alvo não encontrado.")
-            return
-        end
-        local Prop = PropFolder:FindFirstChild("Prop" .. LocalPlayer.Name)
-        if not Prop then
-            warn("Prop do jogador local não encontrado! (ex: Prop" .. LocalPlayer.Name .. ")")
-            return
-        end
-        local Remote = Prop:FindFirstChild("SetCurrentCFrame")
-        if not Remote then
-            warn("Remote SetCurrentCFrame não encontrado!")
-            return
-        end
-        task.spawn(function()
-            local sitting = false
-            while target and target.Character and task.wait(0.05) do
-                local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
-                local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-                local myChar = LocalPlayer.Character
-                local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
-                if not hrp or not humanoid or not myHRP then continue end
-                if humanoid.Sit and not sitting then
-                    sitting = true
-                    pcall(function()
-                        Remote:InvokeServer(myHRP.CFrame * CFrame.new(0, 0, -2))
-                        task.wait(0.2)
-                        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Clea1rTool1s"):FireServer("ClearAllProps")
-                    end)
+        if PropFolder then
+            for _, prop in pairs(PropFolder:GetChildren()) do
+                if prop.Name:find("Prop") then
+                    local remote = prop:FindFirstChild("SetCurrentCFrame")
+                    if remote then
+                        pcall(function()
+                            remote:InvokeServer(hrp.CFrame * CFrame.new(0, 0, -2))
+                        end)
+                    end
                 end
-                if not humanoid.Sit and sitting then
-                    sitting = false
-                    pcall(function()
-                        Remote:InvokeServer(hrp.CFrame * CFrame.new(2, 0, 0))
-                    end)
-                end
-                local moving = humanoid.MoveDirection.Magnitude > 0
-                local offset = moving and 6 or 0.1
-                local followCF = hrp.CFrame * CFrame.new(0, 0, -offset)
-                pcall(function()
-                    Remote:InvokeServer(followCF)
-                end)
             end
-        end)
+        end
     end
 })
 
--- Atualização automática da lista de jogadores
-game.Players.PlayerAdded:Connect(function()
-    wait(0.5)
-    DropdownPlayers:Refresh(GetPlayers())
-end)
-
-game.Players.PlayerRemoving:Connect(function()
-    wait(0.5)
-    DropdownPlayers:Refresh(GetPlayers())
-end)
-
--- Seção para funções Couch
 Tab:AddSection({"Fuctions Couch (All Beta)"})
 
 local Players = game:GetService("Players")
